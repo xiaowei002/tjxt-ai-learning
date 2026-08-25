@@ -8,9 +8,12 @@ import com.tianji.aigc.vo.ChatEventVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,12 +24,12 @@ public class ChatServiceImpl implements ChatService {
 
     private final ChatClient chatClient;
     private final SystemPromptConfig systemPromptConfig;
-    private final ConcurrentHashMap<String, Boolean> SESSION_STATUS = new ConcurrentHashMap<>();
-
+    private final StringRedisTemplate redisTemplate;
+    private final String SESSION_STATUS_KEY_PREFIX = "session_status_key";
 
     @Override
     public void stop(String sessionId) {
-        SESSION_STATUS.remove(sessionId);
+        redisTemplate.delete(SESSION_STATUS_KEY_PREFIX + sessionId);
     }
 
     @Override
@@ -43,10 +46,13 @@ public class ChatServiceImpl implements ChatService {
                 .user(question)
                 .stream()
                 .chatResponse()
-                .doOnError(throwable -> SESSION_STATUS.remove(sessionId)) //遇到错误时，清空状态
-                .doFirst(() -> SESSION_STATUS.put(sessionId, Boolean.TRUE)) //第一次输出内容时执行
-                .doOnComplete(() -> SESSION_STATUS.remove(sessionId)) //完成输出时执行
-                .takeWhile(response -> SESSION_STATUS.getOrDefault(sessionId, Boolean.FALSE)) //通过返回值来控制是否输出
+                .doOnError(throwable -> redisTemplate.delete(SESSION_STATUS_KEY_PREFIX + sessionId)) //遇到错误时，清空状态
+                .doFirst(() -> redisTemplate.opsForValue().set(SESSION_STATUS_KEY_PREFIX + sessionId, Boolean.TRUE, Duration.ofMinutes(30))) //第一次输出内容时执行,过期时间设置30min
+                .doOnComplete(() -> redisTemplate.delete(SESSION_STATUS_KEY_PREFIX + sessionId)) //完成输出时执行
+                .takeWhile(response -> {
+                    Boolean flag = redisTemplate.opsForValue().get(SESSION_STATUS_KEY_PREFIX + sessionId);
+                    return flag == null ? Boolean.FALSE : flag;
+                }) //通过返回值来控制是否输出
                 .map(chatResponse -> {
                     String text = chatResponse.getResult().getOutput().getText();
                     return ChatEventVO.builder()

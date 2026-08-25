@@ -86,6 +86,7 @@ spring:
               - "DELETE"
               - "PUT"
               - "OPTIONS"
-            allowedHeaders: "*" # 允许在请求中携带的头信息
+            allowed-headers:
+              -  "*" # 允许在请求中携带的头信息
             allowCredentials: true # 是否允许携带cookie
             maxAge: 360000 # 这次跨域检测的有效期

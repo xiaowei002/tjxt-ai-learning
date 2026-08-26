@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -22,6 +23,7 @@ public class ChatServiceImpl implements ChatService {
 
     private final ChatClient chatClient;
     private final SystemPromptConfig systemPromptConfig;
+    private final ChatMemory chatMemory;
     private final ConcurrentHashMap<String, Boolean> SESSION_STATUS = new ConcurrentHashMap<>();
 
 
@@ -36,6 +38,8 @@ public class ChatServiceImpl implements ChatService {
         String systemPrompt = systemPromptConfig.getChatSystemMessage();
         //获取conversationId
         String conversationId = ChatService.getConversationId(sessionId);
+        //定义大模型停止后的回复
+        StringBuilder output = new StringBuilder();
 
         return chatClient.prompt()
                 .system(promptSystemSpec -> {
@@ -52,14 +56,26 @@ public class ChatServiceImpl implements ChatService {
                 .doOnError(throwable -> SESSION_STATUS.remove(sessionId)) //遇到错误时，清空状态
                 .doFirst(() -> SESSION_STATUS.put(sessionId, Boolean.TRUE)) //第一次输出内容时执行
                 .doOnComplete(() -> SESSION_STATUS.remove(sessionId)) //完成输出时执行
+                .doOnCancel(() -> {this.saveChatMessage(conversationId, output.toString());})
                 .takeWhile(response -> SESSION_STATUS.getOrDefault(sessionId, Boolean.FALSE)) //通过返回值来控制是否输出
                 .map(chatResponse -> {
                     String text = chatResponse.getResult().getOutput().getText();
+                    //追加到缓冲中
+                    output.append(text);
                     return ChatEventVO.builder()
                             .eventData(text)
                             .eventType(ChatEventTypeEnum.DATA.getValue())//数据
                             .build();
                 })
                 .concatWith(Flux.just(ChatEventVO.builder().eventType(ChatEventTypeEnum.STOP.getValue()).build()));
+    }
+
+    /**
+     * 手动保存大模型回复
+     * @param conversationId
+     * @param message
+     */
+    private void saveChatMessage(String conversationId, String message) {
+        chatMemory.add(conversationId, new AssistantMessage(message));
     }
 }

@@ -34,4 +34,4 @@ tj:
     #最大对话存储
     memory:
       max: 65536
-      type: MongoDB  # MySQL, Redis, MongoDB，目前只支持这三种实现，默认Redis
+      type: MySQL  # MySQL, Redis, MongoDB，目前只支持这三种实现，默认Redis

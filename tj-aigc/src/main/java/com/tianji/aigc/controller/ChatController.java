@@ -1,10 +1,9 @@
 package com.tianji.aigc.controller;
 
-import com.tianji.aigc.config.SystemPromptConfig;
 import com.tianji.aigc.service.ChatService;
 import com.tianji.aigc.vo.ChatEventVO;
 import com.tianji.common.annotations.NoWrapper;
-import com.tianji.dto.ChatDTO;
+import com.tianji.aigc.dto.ChatDTO;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

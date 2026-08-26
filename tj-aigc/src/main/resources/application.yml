@@ -34,3 +34,4 @@ tj:
     #最大对话存储
     memory:
       max: 65536
+      type: MYSQL  # MYSQL, REDIS, mangodb

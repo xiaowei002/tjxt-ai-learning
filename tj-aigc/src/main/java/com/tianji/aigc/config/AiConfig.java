@@ -1,6 +1,8 @@
 package com.tianji.aigc.config;
 
+import com.tianji.aigc.memory.MysqlChatMemoryRepository;
 import com.tianji.aigc.memory.RedisChatMemoryRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
@@ -14,10 +16,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@Slf4j
 public class AiConfig {
 
     @Value("${tj.ai.memory.max:1024}")
     private Integer maxMessages;
+
+    @Value("${tj.ai.memory.type: REDIS}")
+    private String memoryType;
 
     @Bean
     public ChatClient getChatClient(ChatClient.Builder builder,
@@ -35,7 +41,15 @@ public class AiConfig {
 
     @Bean
     public ChatMemoryRepository chatMemoryRepository() {
-        return new RedisChatMemoryRepository();
+        switch (memoryType) {
+            case "REDIS":
+                return new RedisChatMemoryRepository();
+            case "MYSQL":
+                return new MysqlChatMemoryRepository();
+            default:
+                log.error("不支持的实现方式： {}", memoryType);
+                throw new RuntimeException(String.format("不支持的实现类型: %s", memoryType));
+        }
     }
 
     @Bean

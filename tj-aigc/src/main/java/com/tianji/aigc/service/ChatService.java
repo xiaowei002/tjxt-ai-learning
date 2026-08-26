@@ -1,6 +1,7 @@
 package com.tianji.aigc.service;
 
 import com.tianji.aigc.vo.ChatEventVO;
+import com.tianji.common.utils.UserContext;
 import reactor.core.publisher.Flux;
 
 public interface ChatService {
@@ -20,4 +21,14 @@ public interface ChatService {
      * @return
      */
     void stop(String sessionId);
+
+
+    /**
+     * 构造 conversationId
+     * @param sessionId
+     * @return
+     */
+    static String getConversationId(String sessionId) {
+        return UserContext.getUser().toString() + "_" + sessionId;
+    }
 }

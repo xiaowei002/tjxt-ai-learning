@@ -1,6 +1,7 @@
 package com.tianji.aigc.controller;
 
 import com.tianji.aigc.service.ChatSessionService;
+import com.tianji.aigc.vo.MessageVO;
 import com.tianji.aigc.vo.SessionVO;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,16 @@ public class SessionController {
     @GetMapping("/hot")
     public List<SessionVO.Example> hotExamples(@RequestParam(value = "n", defaultValue = "3") Integer num) {
         return this.chatSessionService.hotExamples(num);
+    }
+
+    /**
+     * 查询单个历史对话详情
+     *
+     * @return 对话记录列表
+     */
+    @GetMapping("/{sessionId}")
+    public List<MessageVO> queryBySessionId(@PathVariable("sessionId") String sessionId) {
+        return this.chatSessionService.queryBySessionId(sessionId);
     }
 
 }

@@ -31,3 +31,6 @@ tj:
           data-id: system-chat-message # 系统提示词存储位置
           group: DEFAULT_GROUP
           timeout-ms: 20000
+    #最大对话存储
+    memory:
+      max: 65536

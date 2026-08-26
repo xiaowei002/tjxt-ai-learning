@@ -8,6 +8,7 @@ import com.tianji.aigc.vo.ChatEventVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -33,6 +34,8 @@ public class ChatServiceImpl implements ChatService {
     public Flux<ChatEventVO> chat(String sessionId, String question) {
         //每次读取最新的系统提示词
         String systemPrompt = systemPromptConfig.getChatSystemMessage();
+        //获取conversationId
+        String conversationId = ChatService.getConversationId(sessionId);
 
         return chatClient.prompt()
                 .system(promptSystemSpec -> {
@@ -40,9 +43,12 @@ public class ChatServiceImpl implements ChatService {
                             .text(systemPrompt) //设置系统提示词
                             .params(Map.of("now", DateUtil.now())); //设置系统提示词参数 ——> 当前时间
                 })
-                .user(question)
+                .advisors(advisorSpec -> {
+                    advisorSpec.param(ChatMemory.CONVERSATION_ID, conversationId);
+                })
+                .user(question) //用户提示词
                 .stream()
-                .chatResponse()
+                .chatResponse() //流式响应
                 .doOnError(throwable -> SESSION_STATUS.remove(sessionId)) //遇到错误时，清空状态
                 .doFirst(() -> SESSION_STATUS.put(sessionId, Boolean.TRUE)) //第一次输出内容时执行
                 .doOnComplete(() -> SESSION_STATUS.remove(sessionId)) //完成输出时执行

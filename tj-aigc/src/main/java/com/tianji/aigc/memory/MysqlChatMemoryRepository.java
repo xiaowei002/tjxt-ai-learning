@@ -13,7 +13,7 @@ import org.springframework.ai.chat.messages.Message;
 import java.util.List;
 
 /**
- * 使用mysql来实现 chatMemory
+ * 使用mysql来实现 对话记忆
  */
 public class MysqlChatMemoryRepository implements ChatMemoryRepository {
 

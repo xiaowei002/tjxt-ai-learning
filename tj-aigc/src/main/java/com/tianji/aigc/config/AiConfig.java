@@ -1,5 +1,6 @@
 package com.tianji.aigc.config;
 
+import com.tianji.aigc.memory.mongodb.MongoDBChatMemoryRepository;
 import com.tianji.aigc.memory.MysqlChatMemoryRepository;
 import com.tianji.aigc.memory.RedisChatMemoryRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,7 @@ import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -22,7 +24,7 @@ public class AiConfig {
     @Value("${tj.ai.memory.max:1024}")
     private Integer maxMessages;
 
-    @Value("${tj.ai.memory.type: REDIS}")
+    @Value("${tj.ai.memory.type: Redis}")
     private String memoryType;
 
     @Bean
@@ -40,16 +42,22 @@ public class AiConfig {
     }
 
     @Bean
-    public ChatMemoryRepository chatMemoryRepository() {
-        switch (memoryType) {
-            case "REDIS":
-                return new RedisChatMemoryRepository();
-            case "MYSQL":
-                return new MysqlChatMemoryRepository();
-            default:
-                log.error("不支持的实现方式： {}", memoryType);
-                throw new RuntimeException(String.format("不支持的实现类型: %s", memoryType));
-        }
+    @ConditionalOnProperty(prefix = "tj.ai.memory", value = "type", havingValue = "Redis")
+    public ChatMemoryRepository redisChatMemoryRepository() {
+        return new RedisChatMemoryRepository();
+    }
+
+
+    @Bean
+    @ConditionalOnProperty(prefix = "tj.ai.memory", value = "type", havingValue = "MySQL")
+    public ChatMemoryRepository mysqlChatMemoryRepository() {
+        return new MysqlChatMemoryRepository();
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "tj.ai.memory", value = "type", havingValue = "MongoDB")
+    public ChatMemoryRepository mongoDBChatMemoryRepository() {
+        return new MongoDBChatMemoryRepository();
     }
 
     @Bean

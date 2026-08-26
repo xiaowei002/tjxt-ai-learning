@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Redis实现chat memory
+ * Redis实现对话记忆
  */
 public class RedisChatMemoryRepository implements ChatMemoryRepository {
 

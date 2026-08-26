@@ -15,6 +15,7 @@ import reactor.core.publisher.Flux;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -25,7 +26,7 @@ public class ChatServiceImpl implements ChatService {
     private final ChatClient chatClient;
     private final SystemPromptConfig systemPromptConfig;
     private final StringRedisTemplate redisTemplate;
-    private final String SESSION_STATUS_KEY_PREFIX = "session_status_key";
+    private final String SESSION_STATUS_KEY_PREFIX = "aigc:chat:running:";
 
     @Override
     public void stop(String sessionId) {
@@ -36,7 +37,7 @@ public class ChatServiceImpl implements ChatService {
     public Flux<ChatEventVO> chat(String sessionId, String question) {
         //每次读取最新的系统提示词
         String systemPrompt = systemPromptConfig.getChatSystemMessage();
-
+        String key = SESSION_STATUS_KEY_PREFIX + sessionId;
         return chatClient.prompt()
                 .system(promptSystemSpec -> {
                     promptSystemSpec
@@ -46,12 +47,12 @@ public class ChatServiceImpl implements ChatService {
                 .user(question)
                 .stream()
                 .chatResponse()
-                .doOnError(throwable -> redisTemplate.delete(SESSION_STATUS_KEY_PREFIX + sessionId)) //遇到错误时，清空状态
-                .doFirst(() -> redisTemplate.opsForValue().set(SESSION_STATUS_KEY_PREFIX + sessionId, Boolean.TRUE, Duration.ofMinutes(30))) //第一次输出内容时执行,过期时间设置30min
-                .doOnComplete(() -> redisTemplate.delete(SESSION_STATUS_KEY_PREFIX + sessionId)) //完成输出时执行
+                .doOnError(throwable -> redisTemplate.delete(key)) //遇到错误时，清空状态
+                .doFirst(() -> redisTemplate.opsForValue().set(key, "1", Duration.ofMinutes(30))) //第一次输出内容时执行,过期时间设置30min
+                .doOnComplete(() -> redisTemplate.delete(key)) //完成输出时执行
                 .takeWhile(response -> {
-                    Boolean flag = redisTemplate.opsForValue().get(SESSION_STATUS_KEY_PREFIX + sessionId);
-                    return flag == null ? Boolean.FALSE : flag;
+                    String flag = redisTemplate.opsForValue().get(key);
+                    return Objects.equals(flag, "1") ? Boolean.TRUE : Boolean.FALSE;
                 }) //通过返回值来控制是否输出
                 .map(chatResponse -> {
                     String text = chatResponse.getResult().getOutput().getText();

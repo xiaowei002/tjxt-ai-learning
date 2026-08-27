@@ -1,6 +1,7 @@
 package com.tianji.aigc.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.nacos.common.utils.UuidUtils;
 import com.tianji.aigc.config.SystemPromptConfig;
 import com.tianji.aigc.config.ToolResultHolder;
@@ -68,6 +69,15 @@ public class ChatServiceImpl implements ChatService {
                 })
                 .takeWhile(response -> SESSION_STATUS.getOrDefault(sessionId, Boolean.FALSE)) //通过返回值来控制是否输出
                 .map(chatResponse -> {
+                    //关联requestId 和 metadataId
+                    String metadataId = chatResponse.getMetadata().getId();
+                    //获取完成原因，如果是STOP的话，对话结束才需要保存，此时才需要设置params
+                    String finishReason = chatResponse.getResult().getMetadata().getFinishReason();
+                    if (StrUtil.equalsIgnoreCase(finishReason, Constant.STOP)) {
+                        //保存
+                        ToolResultHolder.put(metadataId, Constant.REQUEST_ID, requestId);
+                    }
+                    //模型输出
                     String text = chatResponse.getResult().getOutput().getText();
                     //追加到缓冲中
                     output.append(text);

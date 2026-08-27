@@ -8,6 +8,7 @@ import com.tianji.aigc.config.SessionProperties;
 import com.tianji.aigc.entity.ChatSession;
 import com.tianji.aigc.enums.MessageTypeEnum;
 import com.tianji.aigc.mapper.ChatSessionMapper;
+import com.tianji.aigc.memory.MyAssistantMessage;
 import com.tianji.aigc.service.ChatService;
 import com.tianji.aigc.service.ChatSessionService;
 import com.tianji.aigc.vo.MessageVO;
@@ -70,9 +71,21 @@ public class ChatSessionServiceImpl extends ServiceImpl<ChatSessionMapper, ChatS
         return messages.stream().filter(
                         message ->
                                 message.getMessageType().equals(MessageType.ASSISTANT) || message.getMessageType().equals(MessageType.USER))
-                .map(message -> MessageVO.builder().type(MessageTypeEnum.valueOf(message.getMessageType().name()))
-                        .content(message.getText()).build())
-                .toList();
+                .map(message -> {
+                    //大模型返回消息
+                    if (message instanceof MyAssistantMessage myAssistantMessage) {
+                        MessageVO.builder()
+                                .type(MessageTypeEnum.valueOf(message.getMessageType().name()))
+                                .params(myAssistantMessage.getParams())
+                                .content(message.getText())
+                                .build();
+                    }
+                    //普通消息
+                    return MessageVO.builder()
+                            .type(MessageTypeEnum.valueOf(message.getMessageType().name()))
+                            .content(message.getText())
+                            .build();
+                }).toList();
     }
 
 

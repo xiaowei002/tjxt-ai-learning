@@ -3,6 +3,9 @@ package com.tianji.aigc.constants;
 public interface Constant {
 
     String REQUEST_ID = "requestId";
+    String ID = "id";
+
+    String STOP = "stop";
 
 
     interface Tools {

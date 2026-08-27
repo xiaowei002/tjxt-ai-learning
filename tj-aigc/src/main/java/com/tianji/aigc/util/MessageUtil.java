@@ -1,9 +1,18 @@
 package com.tianji.aigc.util;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.nacos.common.utils.ConvertUtils;
+import com.tianji.aigc.config.ToolResultHolder;
+import com.tianji.aigc.constants.Constant;
+import com.tianji.aigc.memory.MyAssistantMessage;
 import com.tianji.aigc.memory.MyMessage;
+import com.tianji.common.utils.ObjectUtils;
 import org.springframework.ai.chat.messages.*;
+
+import java.util.Map;
 
 /**
  * 消息转换工具类，提供消息对象与JSON字符串之间的转换功能，主要用于Redis存储格式转换
@@ -22,6 +31,18 @@ public class MessageUtil {
         myMessage.setTextContent(message.getText());
         if (message instanceof AssistantMessage assistantMessage) {
             myMessage.setToolCalls(assistantMessage.getToolCalls());
+            //通过assistantMessage获取到params
+            String metadataId = MapUtil.getStr(assistantMessage.getMetadata(), Constant.ID);
+            //获取requestId
+            String requestId = Convert.toStr(ToolResultHolder.get(metadataId, Constant.REQUEST_ID));
+            //获取params
+            Map<String, Object> params = ToolResultHolder.get(requestId);
+            if (ObjectUtils.isNotEmpty(params)) {
+                //设置parmas
+                myMessage.setParams(params);
+            }
+            //清除数据，防止内存卸扣
+            ToolResultHolder.remove(metadataId);
         }
 
         if (message instanceof ToolResponseMessage toolResponseMessage) {
@@ -53,7 +74,8 @@ public class MessageUtil {
                         .build();
             }
             case ASSISTANT -> {
-                return new AssistantMessage(myMessage.getTextContent(), myMessage.getMetadata(), myMessage.getToolCalls());
+                return new MyAssistantMessage(myMessage.getTextContent(), myMessage.getMetadata(), myMessage.getToolCalls(),
+                        myMessage.getMedia(), myMessage.getParams());
             }
             case TOOL -> {
                 return new ToolResponseMessage(myMessage.getToolResponses(), myMessage.getMetadata());

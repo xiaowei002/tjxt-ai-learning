@@ -107,6 +107,11 @@
             <artifactId>elasticsearch-java</artifactId>
             <version>8.15.5</version>
         </dependency>
+        <!--向量库 redis -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-vector-store-redis</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

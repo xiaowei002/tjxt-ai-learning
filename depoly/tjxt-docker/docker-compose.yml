@@ -144,6 +144,26 @@ services:
       - new
     restart: always
     entrypoint: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+  # Redis Stack 用于 Spring AI RAG 向量库；与业务缓存 Redis(6379) 相互独立。
+  redis-stack:
+    image: redis/redis-stack:latest
+    container_name: redis-stack
+    ports:
+      - "6380:6379"
+      - "8001:8001"
+    environment:
+      REDIS_ARGS: "--appendonly yes"
+    volumes:
+      - "redis-stack-data:/data"
+    networks:
+      - new
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
   mongodb:
     image: mongo:4.4.18
     container_name: mongodb
@@ -218,3 +238,5 @@ volumes:
     name: tjxt-es2-data
   es2-plugins:
     name: tjxt-es2-plugins
+  redis-stack-data:
+    name: tjxt-redis-stack-data

@@ -1,7 +1,10 @@
 package com.tianji.aigc.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import com.alibaba.nacos.common.utils.UuidUtils;
 import com.tianji.aigc.config.SystemPromptConfig;
+import com.tianji.aigc.config.ToolResultHolder;
+import com.tianji.aigc.constants.Constant;
 import com.tianji.aigc.enums.ChatEventTypeEnum;
 import com.tianji.aigc.service.ChatService;
 import com.tianji.aigc.vo.ChatEventVO;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -40,6 +44,8 @@ public class ChatServiceImpl implements ChatService {
         String conversationId = ChatService.getConversationId(sessionId);
         //定义大模型停止后的回复
         StringBuilder output = new StringBuilder();
+        //定义requestId
+        String requestId = UuidUtils.generateUuid();
 
         return chatClient.prompt()
                 .system(promptSystemSpec -> {
@@ -51,12 +57,15 @@ public class ChatServiceImpl implements ChatService {
                     advisorSpec.param(ChatMemory.CONVERSATION_ID, conversationId);
                 })
                 .user(question) //用户提示词
+                .toolContext(Map.of(Constant.REQUEST_ID, requestId)) //传递requestId过去
                 .stream()
                 .chatResponse() //流式响应
                 .doOnError(throwable -> SESSION_STATUS.remove(sessionId)) //遇到错误时，清空状态
                 .doFirst(() -> SESSION_STATUS.put(sessionId, Boolean.TRUE)) //第一次输出内容时执行
                 .doOnComplete(() -> SESSION_STATUS.remove(sessionId)) //完成输出时执行
-                .doOnCancel(() -> {this.saveChatMessage(conversationId, output.toString());})
+                .doOnCancel(() -> {
+                    this.saveChatMessage(conversationId, output.toString());
+                })
                 .takeWhile(response -> SESSION_STATUS.getOrDefault(sessionId, Boolean.FALSE)) //通过返回值来控制是否输出
                 .map(chatResponse -> {
                     String text = chatResponse.getResult().getOutput().getText();
@@ -67,11 +76,26 @@ public class ChatServiceImpl implements ChatService {
                             .eventType(ChatEventTypeEnum.DATA.getValue())//数据
                             .build();
                 })
-                .concatWith(Flux.just(ChatEventVO.builder().eventType(ChatEventTypeEnum.STOP.getValue()).build()));
+                //添加自定义数据
+                .concatWith(Flux.defer(() -> {
+                    Map<String, Object> stringObjectMap = ToolResultHolder.get(requestId);
+                    if (Objects.nonNull(stringObjectMap)) {
+                        //移除数据，防止内存泄漏
+                        ToolResultHolder.remove(requestId);
+                        //响应给前端的数据
+                        ChatEventVO chatEventVO = ChatEventVO.builder()
+                                .eventType(ChatEventTypeEnum.PARAM.getValue())
+                                .eventData(stringObjectMap)
+                                .build();
+                        return Flux.just(chatEventVO, ChatEventVO.builder().eventType(ChatEventTypeEnum.STOP.getValue()).build());
+                    }
+                    return Flux.just(ChatEventVO.builder().eventType(ChatEventTypeEnum.STOP.getValue()).build());
+                }));
     }
 
     /**
      * 手动保存大模型回复
+     *
      * @param conversationId
      * @param message
      */

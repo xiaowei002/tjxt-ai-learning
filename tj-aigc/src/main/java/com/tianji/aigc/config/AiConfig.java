@@ -3,6 +3,7 @@ package com.tianji.aigc.config;
 import com.tianji.aigc.memory.mongodb.MongoDBChatMemoryRepository;
 import com.tianji.aigc.memory.MysqlChatMemoryRepository;
 import com.tianji.aigc.memory.RedisChatMemoryRepository;
+import com.tianji.aigc.tools.CourseTools;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -30,9 +31,11 @@ public class AiConfig {
     @Bean
     public ChatClient getChatClient(ChatClient.Builder builder,
                                     @Qualifier("loggerAdvisor") Advisor loggerAdvisor, //日志记录器
-                                    @Qualifier("messageChatMemoryAdvisor") Advisor messageChatMemoryAdvisor) {
+                                    @Qualifier("messageChatMemoryAdvisor") Advisor messageChatMemoryAdvisor,
+                                    CourseTools courseTools) {
         return builder
                 .defaultAdvisors(loggerAdvisor, messageChatMemoryAdvisor)
+                .defaultTools(courseTools)
                 .build();
     }
 

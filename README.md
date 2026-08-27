@@ -81,7 +81,7 @@ Copy-Item depoly/tjxt-docker/.env.example depoly/tjxt-docker/.env
 
 ```bash
 docker compose -f depoly/tjxt-docker/docker-compose.yml up -d \
-  mysql nacos xxl-job seata mq es es2 redis mongodb nginx
+  mysql nacos xxl-job seata mq es es2 kibana2 redis mongodb nginx
 ```
 
 主要基础设施端口：
@@ -93,6 +93,7 @@ docker compose -f depoly/tjxt-docker/docker-compose.yml up -d \
 | MongoDB 4.4 | `27017` | MongoDB 会话记忆实现 |
 | Elasticsearch 7.12 | `9200` / `9300` | 天机课程搜索 |
 | Elasticsearch 8.13 | `19200` / `19300` | Spring AI 知识库 |
+| Kibana 8.13 | `15601` | ES8 知识库可视化控制台 |
 | Nacos | `8848` / `9848` | 注册中心和配置中心 |
 | Seata | `8099` / `7099` | 分布式事务 |
 | RabbitMQ | `5672` / `15672` | 消息队列和控制台 |
@@ -101,7 +102,7 @@ docker compose -f depoly/tjxt-docker/docker-compose.yml up -d \
 
 旧版 `es` 和知识库 `es2` 用途不同，需要同时保留。Gogs、Jenkins 仅用于课程 CI/CD，已在 Compose 中注释，需要时可自行取消注释并准备对应数据目录。
 
-ES2 使用独立的 `es2-net` 网络和 `tjxt-es2-data`、`tjxt-es2-plugins` 命名卷，不会覆盖课程搜索使用的 ES7 数据。
+ES2 和 Kibana2 使用独立的 `es2-net` 网络；Kibana 在容器内通过 `http://es2:9200` 连接 ES8。ES2 使用 `tjxt-es2-data`、`tjxt-es2-plugins` 命名卷，不会覆盖课程搜索使用的 ES7 数据。可通过 [http://localhost:15601](http://localhost:15601) 访问知识库控制台。
 
 查看状态：
 

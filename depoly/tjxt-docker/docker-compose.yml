@@ -180,6 +180,18 @@ services:
     networks:
       - es2
     restart: always
+  kibana2:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    container_name: kibana2
+    ports:
+      - "15601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: '["http://es2:9200"]'
+    depends_on:
+      - es2
+    networks:
+      - es2
+    restart: always
   nginx:
     image: harbor.shutongmofang.com:10000/library/nginx:1.29.3
     container_name: tjxt-nginx

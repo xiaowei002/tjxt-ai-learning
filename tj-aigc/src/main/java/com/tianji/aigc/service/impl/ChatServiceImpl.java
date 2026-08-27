@@ -15,8 +15,11 @@ import com.tianji.common.utils.UserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -33,6 +36,7 @@ public class ChatServiceImpl implements ChatService {
     private final SystemPromptConfig systemPromptConfig;
     private final ChatMemory chatMemory;
     private final ConcurrentHashMap<String, Boolean> SESSION_STATUS = new ConcurrentHashMap<>();
+    private final VectorStore vectorStore;
 
 
     @Override
@@ -52,6 +56,16 @@ public class ChatServiceImpl implements ChatService {
         String requestId = UuidUtils.generateUuid();
         //获取用户id
         String userId = Convert.toStr(UserContext.getUser());
+        //RAG增强生成
+        QuestionAnswerAdvisor answerAdvisor = QuestionAnswerAdvisor
+                .builder(vectorStore)
+                .searchRequest(SearchRequest
+                        .builder()
+                        .similarityThreshold(0.6f) //相似度阈值
+                        .topK(3)                   //获取条数
+                        .build())
+                .build();
+
 
         return chatClient.prompt()
                 .system(promptSystemSpec -> {
@@ -60,7 +74,8 @@ public class ChatServiceImpl implements ChatService {
                             .params(Map.of("now", DateUtil.now())); //设置系统提示词参数 ——> 当前时间
                 })
                 .advisors(advisorSpec -> {
-                    advisorSpec.param(ChatMemory.CONVERSATION_ID, conversationId);
+                    advisorSpec.advisors(answerAdvisor) //使用RAG增强生成
+                            .param(ChatMemory.CONVERSATION_ID, conversationId);
                 })
                 .user(question) //用户提示词
                 .toolContext(MapUtil.<String, Object>builder() // 设置tool列表

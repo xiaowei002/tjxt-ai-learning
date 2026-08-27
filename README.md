@@ -48,34 +48,60 @@ cd tjxt-ai-learning
 
 ## 本地部署包
 
-`depoly/` 包含约 3 GB 的数据库数据、前端产物、证书及中间件运行目录，因此已被 `.gitignore` 排除，不会上传到 GitHub。
-
-首次在新电脑克隆代码后，需要单独复制课程部署包到以下位置：
+仓库已经包含可复现运行所需的 Compose、挂载配置、Elasticsearch 插件，以及编译后的学员端和管理端前端。克隆仓库后无需再单独下载前端或复制课程部署包。
 
 ```text
 tjxt-ai-learning/
 └── depoly/
     └── tjxt-docker/
         ├── docker-compose.yml
-        ├── mysql/
-        ├── nacos/
-        ├── redis/
+        ├── .env.example
+        ├── es/plugins/
+        ├── nginx/conf/
+        ├── redis/conf/
         ├── seata/
-        ├── nginx/
-        ├── tj-portal/
-        └── tj-admin/
+        ├── tj-portal/       # 学员端编译产物
+        ├── tj-admin/        # 管理端编译产物
+        └── xxl-job/application.properties
 ```
 
-请勿将数据库目录、Jenkins 密钥、PEM 私钥或云服务凭据强制提交到 Git。
+MySQL、Redis、MongoDB、Elasticsearch 等运行数据由 Docker 卷或本机目录生成，不会提交到 Git。Jenkins 数据、Gogs 仓库、日志、JDK、PEM 私钥及云服务凭据也会继续被忽略。
+
+> GitHub 单文件限制为 100 MB。仓库保留运行所需文件，但不会上传课程虚拟机中的完整数据盘和中间件缓存。
 
 ## 启动中间件
 
-在项目根目录执行：
+首次启动前，复制环境变量示例并把 `SEATA_IP` 修改为当前电脑的 WLAN 或以太网 IPv4：
+
+```powershell
+Copy-Item depoly/tjxt-docker/.env.example depoly/tjxt-docker/.env
+```
+
+然后在项目根目录执行：
 
 ```bash
 docker compose -f depoly/tjxt-docker/docker-compose.yml up -d \
-  mysql nacos xxl-job seata gogs mq es redis nginx
+  mysql nacos xxl-job seata mq es es2 redis mongodb nginx
 ```
+
+主要基础设施端口：
+
+| 服务 | 端口 | 用途 |
+| --- | --- | --- |
+| MySQL | `3306` | 业务数据库、Nacos、Seata |
+| Redis | `6379` | 缓存和会话记忆 |
+| MongoDB 4.4 | `27017` | MongoDB 会话记忆实现 |
+| Elasticsearch 7.12 | `9200` / `9300` | 天机课程搜索 |
+| Elasticsearch 8.13 | `19200` / `19300` | Spring AI 知识库 |
+| Nacos | `8848` / `9848` | 注册中心和配置中心 |
+| Seata | `8099` / `7099` | 分布式事务 |
+| RabbitMQ | `5672` / `15672` | 消息队列和控制台 |
+| XXL-Job | `8880` | 定时任务 |
+| Nginx | `80` | 前端和域名反向代理 |
+
+旧版 `es` 和知识库 `es2` 用途不同，需要同时保留。Gogs、Jenkins 仅用于课程 CI/CD，已在 Compose 中注释，需要时可自行取消注释并准备对应数据目录。
+
+ES2 使用独立的 `es2-net` 网络和 `tjxt-es2-data`、`tjxt-es2-plugins` 命名卷，不会覆盖课程搜索使用的 ES7 数据。
 
 查看状态：
 
@@ -134,7 +160,7 @@ Nginx 使用以下域名提供前端及中间件入口：
 | [http://nacos.tianji.com](http://nacos.tianji.com) | Nacos 控制台 |
 | [http://mq.tianji.com](http://mq.tianji.com) | RabbitMQ 控制台 |
 | [http://xxljob.tianji.com](http://xxljob.tianji.com) | XXL-Job 控制台 |
-| [http://git.tianji.com](http://git.tianji.com) | Gogs |
+| [http://git.tianji.com](http://git.tianji.com) | Gogs（需在 Compose 中取消注释并准备数据目录） |
 | [http://jenkins.tianji.com](http://jenkins.tianji.com) | Jenkins（需单独启动） |
 | [http://es.tianji.com](http://es.tianji.com) | Kibana（需单独部署） |
 

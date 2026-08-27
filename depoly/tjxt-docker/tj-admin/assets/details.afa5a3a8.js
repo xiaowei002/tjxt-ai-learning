@@ -1,0 +1,1 @@
+import{_ as e,d as t,o as c}from"./index.cdcef205.js";const s={},o={class:"contentBox"};function a(n,r){return c(),t("div",o)}var d=e(s,[["render",a],["__file","D:/code/tjxt-admin/src/pages/title/details.vue"]]);export{d as default};

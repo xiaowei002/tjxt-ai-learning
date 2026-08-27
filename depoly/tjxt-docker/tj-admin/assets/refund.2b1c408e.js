@@ -1,0 +1,1 @@
+import{i as e}from"./request.83efef91.js";const p=t=>e({url:"/ts/refund-apply/page",method:"get",params:t}),r=t=>e({url:`/ts/refund-apply/${t}`,method:"get"}),s=t=>e({url:"/ts/refund-apply",method:"post",data:t}),o=t=>e({url:"/ts/refund-apply/approval",method:"put",data:t}),d=t=>e({url:"/ts/refund-apply/next",method:"get"});export{o as a,d as b,r as c,p as g,s as r};

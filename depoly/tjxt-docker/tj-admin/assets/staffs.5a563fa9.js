@@ -1,0 +1,1 @@
+import{i as e}from"./request.105653d8.js";const o=s=>e({url:"/us/staffs/page",method:"get",params:s}),a=()=>e({url:"/as/roles",method:"get"}),c=s=>e({url:"/us/users/checkCellphone",method:"get",params:s}),r=s=>e({url:`/us/users/checkPasswd/${s}`,method:"get"});export{r as C,o as a,c,a as g};

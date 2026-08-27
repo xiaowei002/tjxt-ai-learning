@@ -18,8 +18,53 @@ job
 
 templates
 
-# Local Docker course package and runtime data (contains databases and secrets)
-depoly/
+# Deployment package: ignore everything first, then keep reproducible configuration and built frontends.
+depoly/*
+!depoly/tjxt-docker/
+depoly/tjxt-docker/*
+!depoly/tjxt-docker/docker-compose.yml
+!depoly/tjxt-docker/.env.example
+
+!depoly/tjxt-docker/mysql/
+depoly/tjxt-docker/mysql/*
+!depoly/tjxt-docker/mysql/init/
+!depoly/tjxt-docker/mysql/init/**
+
+!depoly/tjxt-docker/redis/
+depoly/tjxt-docker/redis/*
+!depoly/tjxt-docker/redis/conf/
+!depoly/tjxt-docker/redis/conf/**
+
+!depoly/tjxt-docker/es/
+depoly/tjxt-docker/es/*
+!depoly/tjxt-docker/es/plugins/
+!depoly/tjxt-docker/es/plugins/**
+
+!depoly/tjxt-docker/seata/
+!depoly/tjxt-docker/seata/**
+
+!depoly/tjxt-docker/nginx/
+depoly/tjxt-docker/nginx/*
+!depoly/tjxt-docker/nginx/conf/
+!depoly/tjxt-docker/nginx/conf/**
+
+!depoly/tjxt-docker/xxl-job/
+depoly/tjxt-docker/xxl-job/*
+!depoly/tjxt-docker/xxl-job/application.properties
+
+!depoly/tjxt-docker/tj-portal/
+depoly/tjxt-docker/tj-portal/*
+!depoly/tjxt-docker/tj-portal/index.html
+!depoly/tjxt-docker/tj-portal/favicon.ico
+!depoly/tjxt-docker/tj-portal/assets/
+!depoly/tjxt-docker/tj-portal/assets/**
+
+!depoly/tjxt-docker/tj-admin/
+depoly/tjxt-docker/tj-admin/*
+!depoly/tjxt-docker/tj-admin/index.html
+!depoly/tjxt-docker/tj-admin/favicon.ico
+!depoly/tjxt-docker/tj-admin/assets/
+!depoly/tjxt-docker/tj-admin/assets/**
 
 # Local service runtime files
 .run/

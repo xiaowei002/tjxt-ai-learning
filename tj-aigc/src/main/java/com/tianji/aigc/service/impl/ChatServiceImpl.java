@@ -1,6 +1,8 @@
 package com.tianji.aigc.service.impl;
 
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.nacos.common.utils.UuidUtils;
 import com.tianji.aigc.config.SystemPromptConfig;
@@ -9,6 +11,7 @@ import com.tianji.aigc.constants.Constant;
 import com.tianji.aigc.enums.ChatEventTypeEnum;
 import com.tianji.aigc.service.ChatService;
 import com.tianji.aigc.vo.ChatEventVO;
+import com.tianji.common.utils.UserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -47,6 +50,8 @@ public class ChatServiceImpl implements ChatService {
         StringBuilder output = new StringBuilder();
         //定义requestId
         String requestId = UuidUtils.generateUuid();
+        //获取用户id
+        String userId = Convert.toStr(UserContext.getUser());
 
         return chatClient.prompt()
                 .system(promptSystemSpec -> {
@@ -58,7 +63,11 @@ public class ChatServiceImpl implements ChatService {
                     advisorSpec.param(ChatMemory.CONVERSATION_ID, conversationId);
                 })
                 .user(question) //用户提示词
-                .toolContext(Map.of(Constant.REQUEST_ID, requestId)) //传递requestId过去
+                .toolContext(MapUtil.<String, Object>builder() // 设置tool列表
+                        .put(Constant.REQUEST_ID, requestId) // 设置请求id参数
+                        .put(Constant.USER_ID, userId) // 设置用户id参数
+                        .build()
+                )//传递requestId过去
                 .stream()
                 .chatResponse() //流式响应
                 .doOnError(throwable -> SESSION_STATUS.remove(sessionId)) //遇到错误时，清空状态

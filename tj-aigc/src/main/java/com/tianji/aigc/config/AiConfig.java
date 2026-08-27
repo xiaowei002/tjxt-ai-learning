@@ -4,6 +4,7 @@ import com.tianji.aigc.memory.mongodb.MongoDBChatMemoryRepository;
 import com.tianji.aigc.memory.MysqlChatMemoryRepository;
 import com.tianji.aigc.memory.RedisChatMemoryRepository;
 import com.tianji.aigc.tools.CourseTools;
+import com.tianji.aigc.tools.TradeTools;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -32,10 +33,11 @@ public class AiConfig {
     public ChatClient getChatClient(ChatClient.Builder builder,
                                     @Qualifier("loggerAdvisor") Advisor loggerAdvisor, //日志记录器
                                     @Qualifier("messageChatMemoryAdvisor") Advisor messageChatMemoryAdvisor,
-                                    CourseTools courseTools) {
+                                    CourseTools courseTools,
+                                    TradeTools tradeTools) {
         return builder
                 .defaultAdvisors(loggerAdvisor, messageChatMemoryAdvisor)
-                .defaultTools(courseTools)
+                .defaultTools(courseTools, tradeTools)
                 .build();
     }
 

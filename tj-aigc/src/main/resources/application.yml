@@ -40,6 +40,9 @@ tj:
         # 课程购买智能体
         buy-agent:
           data-id: buy-agent-system-message.txt
+        # 课程咨询智能体
+        consult-agent:
+          data-id: consult-agent-system-message.txt
 
     #最大对话存储
     memory:

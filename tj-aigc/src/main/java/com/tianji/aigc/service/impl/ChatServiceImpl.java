@@ -8,8 +8,10 @@ import com.alibaba.nacos.common.utils.UuidUtils;
 import com.tianji.aigc.config.SystemPromptConfig;
 import com.tianji.aigc.config.ToolResultHolder;
 import com.tianji.aigc.constants.Constant;
+import com.tianji.aigc.entity.ChatSession;
 import com.tianji.aigc.enums.ChatEventTypeEnum;
 import com.tianji.aigc.service.ChatService;
+import com.tianji.aigc.service.ChatSessionService;
 import com.tianji.aigc.vo.ChatEventVO;
 import com.tianji.common.utils.UserContext;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,7 @@ public class ChatServiceImpl implements ChatService {
     private final ChatMemory chatMemory;
     private final ConcurrentHashMap<String, Boolean> SESSION_STATUS = new ConcurrentHashMap<>();
     private final VectorStore vectorStore;
+    private final ChatSessionService chatSessionService;
 
 
     @Override
@@ -66,6 +69,8 @@ public class ChatServiceImpl implements ChatService {
                         .build())
                 .build();
 
+        //异步设置会话标题，标题内容为用户问题
+        this.chatSessionService.update(sessionId, question, UserContext.getUser());
 
         return chatClient.prompt()
                 .system(promptSystemSpec -> {

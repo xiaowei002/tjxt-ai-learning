@@ -43,6 +43,9 @@ tj:
         # 课程咨询智能体
         consult-agent:
           data-id: consult-agent-system-message.txt
+        # 知识讲解智能体
+        knowledge-agent:
+          data-id: knowledge-agent-system-message.txt
 
     #最大对话存储
     memory:

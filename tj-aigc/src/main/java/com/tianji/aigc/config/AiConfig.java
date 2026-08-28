@@ -37,7 +37,7 @@ public class AiConfig {
                                     TradeTools tradeTools) {
         return builder
                 .defaultAdvisors(loggerAdvisor, messageChatMemoryAdvisor)
-                .defaultTools(courseTools, tradeTools)
+//                .defaultTools(courseTools, tradeTools)
                 .build();
     }
 

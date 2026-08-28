@@ -16,6 +16,7 @@ public class AIProperties {
     @Data
     public static class System {
         private Chat chat;
+        private Chat routeAgent; // 路由智能体系统提示词
 
         @Data
         public static class Chat {

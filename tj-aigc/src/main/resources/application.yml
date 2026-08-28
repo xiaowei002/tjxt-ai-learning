@@ -31,10 +31,15 @@ tj:
           data-id: system-chat-message # 系统提示词存储位置
           group: DEFAULT_GROUP
           timeout-ms: 20000
+        # 路由智能体
         route-agent:
           data-id: route-agent-system-message.txt
+        # 课程推荐智能体
         recommend-agent:
           data-id: recommend-agent-system-message.txt
+        # 课程购买智能体
+        buy-agent:
+          data-id: buy-agent-system-message.txt
 
     #最大对话存储
     memory:

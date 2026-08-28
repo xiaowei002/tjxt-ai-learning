@@ -33,6 +33,9 @@ tj:
           timeout-ms: 20000
         route-agent:
           data-id: route-agent-system-message.txt
+        recommend-agent:
+          data-id: recommend-agent-system-message.txt
+
     #最大对话存储
     memory:
       max: 65536

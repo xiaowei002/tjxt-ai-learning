@@ -25,6 +25,7 @@ public class SystemPromptConfig {
     // 使用原子引用，保证线程安全
     private final AtomicReference<String> chatSystemMessage = new AtomicReference<>();
     private final AtomicReference<String> routeAgentSystemMessage = new AtomicReference<>();
+    private final AtomicReference<String> recommendAgentSystemMessage = new AtomicReference<>();
 
     public String getChatSystemMessage() {
         return chatSystemMessage.get();
@@ -34,11 +35,16 @@ public class SystemPromptConfig {
         return routeAgentSystemMessage.get();
     }
 
+    public String getRecommendAgentSystemMessage() {
+        return recommendAgentSystemMessage.get();
+    }
+
     @PostConstruct
     public void init() {
         // 读取配置文件
         loadConfig(aiProperties.getSystem().getChat(), chatSystemMessage);
         loadConfig(aiProperties.getSystem().getRouteAgent(), routeAgentSystemMessage);
+        loadConfig(aiProperties.getSystem().getRecommendAgent(), recommendAgentSystemMessage);
     }
 
     private void loadConfig(AIProperties.System.Chat chat, AtomicReference<String> chatSystemMessage) {

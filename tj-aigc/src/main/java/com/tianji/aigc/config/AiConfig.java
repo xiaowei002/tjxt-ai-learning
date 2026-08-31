@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 @Slf4j
@@ -29,15 +30,27 @@ public class AiConfig {
     @Value("${tj.ai.memory.type: Redis}")
     private String memoryType;
 
-    @Bean
+    @Bean("chatClient")
+    @Primary
     public ChatClient getChatClient(ChatClient.Builder builder,
                                     @Qualifier("loggerAdvisor") Advisor loggerAdvisor, //日志记录器
                                     @Qualifier("messageChatMemoryAdvisor") Advisor messageChatMemoryAdvisor,
                                     CourseTools courseTools,
                                     TradeTools tradeTools) {
-        return builder
+        return builder.clone()
                 .defaultAdvisors(loggerAdvisor, messageChatMemoryAdvisor)
 //                .defaultTools(courseTools, tradeTools)
+                .build();
+    }
+
+    /**
+     * 路由智能体只负责判断请求类型，不参与正式对话，因此不加载对话记忆。
+     */
+    @Bean("routeChatClient")
+    public ChatClient routeChatClient(ChatClient.Builder builder,
+                                      @Qualifier("loggerAdvisor") Advisor loggerAdvisor) {
+        return builder.clone()
+                .defaultAdvisors(loggerAdvisor)
                 .build();
     }
 

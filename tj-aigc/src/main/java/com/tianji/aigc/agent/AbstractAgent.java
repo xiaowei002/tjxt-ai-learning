@@ -110,13 +110,20 @@ public abstract class AbstractAgent implements Agent{
 
     @NotNull
     private ChatClient.ChatClientRequestSpec getClientRequest(String question, String sessionId, String requestId) {
-        return chatClient
+        return this.chatClient()
                 .prompt()
                 .system(promptSystemSpec -> promptSystemSpec.text(this.systemMessage()).params(this.systemMessageParams()))
                 .advisors(advisorSpec -> advisorSpec.advisors(this.advisors()).params(this.advisorParams(sessionId, requestId)))
                 .tools(this.tools())
                 .toolContext(this.toolContext(sessionId, requestId))
                 .user(question);
+    }
+
+    /**
+     * 获取当前智能体使用的 ChatClient，子类可覆盖以隔离不同的 Advisor。
+     */
+    protected ChatClient chatClient() {
+        return this.chatClient;
     }
 
     @Override

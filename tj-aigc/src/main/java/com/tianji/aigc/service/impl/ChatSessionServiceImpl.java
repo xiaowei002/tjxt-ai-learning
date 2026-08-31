@@ -198,7 +198,7 @@ public class ChatSessionServiceImpl extends ServiceImpl<ChatSessionMapper, ChatS
                 .map(message -> {
                     //大模型返回消息
                     if (message instanceof MyAssistantMessage myAssistantMessage) {
-                        MessageVO.builder()
+                        return MessageVO.builder()
                                 .type(MessageTypeEnum.valueOf(message.getMessageType().name()))
                                 .params(myAssistantMessage.getParams())
                                 .content(message.getText())

@@ -13,6 +13,7 @@ import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -32,12 +33,12 @@ public class AiConfig {
 
     @Bean("chatClient")
     @Primary
-    public ChatClient getChatClient(ChatClient.Builder builder,
+    public ChatClient getChatClient(@Qualifier("dashscopeChatModel") ChatModel dashscopeChatModel,
                                     @Qualifier("loggerAdvisor") Advisor loggerAdvisor, //日志记录器
                                     @Qualifier("messageChatMemoryAdvisor") Advisor messageChatMemoryAdvisor,
                                     CourseTools courseTools,
                                     TradeTools tradeTools) {
-        return builder.clone()
+        return ChatClient.builder(dashscopeChatModel)
                 .defaultAdvisors(loggerAdvisor, messageChatMemoryAdvisor)
 //                .defaultTools(courseTools, tradeTools)
                 .build();
@@ -47,9 +48,25 @@ public class AiConfig {
      * 路由智能体只负责判断请求类型，不参与正式对话，因此不加载对话记忆。
      */
     @Bean("routeChatClient")
-    public ChatClient routeChatClient(ChatClient.Builder builder,
+    public ChatClient routeChatClient(@Qualifier("dashscopeChatModel") ChatModel dashscopeChatModel,
                                       @Qualifier("loggerAdvisor") Advisor loggerAdvisor) {
-        return builder.clone()
+        return ChatClient.builder(dashscopeChatModel)
+                .defaultAdvisors(loggerAdvisor)
+                .build();
+    }
+
+    /**
+     * open ai chatClient
+     *
+     * @param openAiChatModel
+     * @param loggerAdvisor
+     * @return
+     */
+    @Bean("openaiChatClient")
+    public ChatClient openAiChatClient(@Qualifier("openAiChatModel") ChatModel openAiChatModel,
+                                       @Qualifier("loggerAdvisor") Advisor loggerAdvisor  // 日志记录器
+    ) {
+        return ChatClient.builder(openAiChatModel)
                 .defaultAdvisors(loggerAdvisor)
                 .build();
     }

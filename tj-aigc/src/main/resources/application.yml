@@ -46,8 +46,11 @@ tj:
         # 知识讲解智能体
         knowledge-agent:
           data-id: knowledge-agent-system-message.txt
+        # open ai智能体
+        text-agent:
+          data-id: text-system-chat-message.txt
     # chat类型，路由，增强
-    chat-type: ROUTE # ROUTE / ENHANCE / APP
+    chat-type: ENHANCE # ROUTE / ENHANCE / APP
     #最大对话存储
     memory:
       max: 65536

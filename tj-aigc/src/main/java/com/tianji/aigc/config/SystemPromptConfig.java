@@ -29,6 +29,8 @@ public class SystemPromptConfig {
     private final AtomicReference<String> buyAgentSystemMessage = new AtomicReference<>();
     private final AtomicReference<String> consultAgentSystemMessage = new AtomicReference<>();
     private final AtomicReference<String> knowledgeAgentSystemMessage = new AtomicReference<>();
+    private final AtomicReference<String> textSystemMessage = new AtomicReference<>();
+
 
     public String getChatSystemMessage() {
         return chatSystemMessage.get();
@@ -54,6 +56,10 @@ public class SystemPromptConfig {
         return consultAgentSystemMessage.get();
     }
 
+    public String getTextSystemMessage() {
+        return textSystemMessage.get();
+    }
+
     @PostConstruct
     public void init() {
         // 读取配置文件
@@ -63,6 +69,7 @@ public class SystemPromptConfig {
         loadConfig(aiProperties.getSystem().getBuyAgent(), buyAgentSystemMessage);
         loadConfig(aiProperties.getSystem().getConsultAgent(), consultAgentSystemMessage);
         loadConfig(aiProperties.getSystem().getKnowledgeAgent(), knowledgeAgentSystemMessage);
+        loadConfig(aiProperties.getSystem().getTextAgent(), textSystemMessage);
     }
 
     private void loadConfig(AIProperties.System.Chat chat, AtomicReference<String> chatSystemMessage) {

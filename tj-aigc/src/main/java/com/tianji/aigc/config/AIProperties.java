@@ -21,6 +21,7 @@ public class AIProperties {
         private Chat buyAgent;       // 课程购买智能体
         private Chat consultAgent;   // 课程咨询智能体
         private Chat knowledgeAgent; // 知识讲解智能体
+        private Chat textAgent; // 文本提示语，用于问答回复、润色等文本类型的业务
 
         @Data
         public static class Chat {

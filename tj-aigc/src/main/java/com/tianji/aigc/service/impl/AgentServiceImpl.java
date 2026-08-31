@@ -18,6 +18,10 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "tj.ai", name = "chat-type", havingValue = "ROUTE")
 public class AgentServiceImpl implements ChatService {
+    @Override
+    public String chatText(String question) {
+        return "";
+    }
 
     @Override
     public Flux<ChatEventVO> chat(String sessionId, String question) {

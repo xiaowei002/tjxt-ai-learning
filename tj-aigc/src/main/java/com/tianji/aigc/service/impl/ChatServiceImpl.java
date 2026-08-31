@@ -14,7 +14,6 @@ import com.tianji.aigc.service.ChatService;
 import com.tianji.aigc.service.ChatSessionService;
 import com.tianji.aigc.vo.ChatEventVO;
 import com.tianji.common.utils.UserContext;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
@@ -22,6 +21,7 @@ import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -35,21 +35,46 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "tj.ai", name = "chat-type", havingValue = "ENHANCE")
 public class ChatServiceImpl implements ChatService {
 
     private final ChatClient chatClient;
     private final SystemPromptConfig systemPromptConfig;
     private final ChatMemory chatMemory;
+    private final ChatClient openaiChatClient;
     private final ConcurrentHashMap<String, Boolean> SESSION_STATUS = new ConcurrentHashMap<>();
     private final VectorStore vectorStore;
     private final ChatSessionService chatSessionService;
+
+    public ChatServiceImpl(@Qualifier("chatClient") ChatClient chatClient,
+                           SystemPromptConfig systemPromptConfig,
+                           ChatMemory chatMemory,
+                           @Qualifier("openaiChatClient") ChatClient openaiChatClient,
+                           VectorStore vectorStore,
+                           ChatSessionService chatSessionService) {
+        this.chatClient = chatClient;
+        this.systemPromptConfig = systemPromptConfig;
+        this.chatMemory = chatMemory;
+        this.openaiChatClient = openaiChatClient;
+        this.vectorStore = vectorStore;
+        this.chatSessionService = chatSessionService;
+    }
 
 
     @Override
     public void stop(String sessionId) {
         SESSION_STATUS.remove(sessionId);
+    }
+
+
+
+    @Override
+    public String chatText(String question) {
+        return openaiChatClient.prompt()
+                .system(this.systemPromptConfig.getTextSystemMessage())
+                .user(question)
+                .call()
+                .content();
     }
 
     @Override

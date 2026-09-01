@@ -152,6 +152,12 @@ Windows 用户级变量示例：
 
 修改用户级环境变量后，需要完全退出并重新打开 IntelliJ IDEA，IDE 启动的 Java 进程才能读取新值。
 
+### AIGC 接口测试说明
+
+除语音相关接口外，其余已实现接口均已完成联调测试并通过。STT（语音转文字）和 TTS（文字转语音）接口暂未完成实际调用测试，原因如下：
+
+> ChatAnyWhere 免费 API 仅限使用 `/chat/completions` 和 `/embeddings` 接口，因此 STT、TTS 接口暂未测试。
+
 ## 本地域名
 
 Nginx 使用以下域名提供前端及中间件入口：

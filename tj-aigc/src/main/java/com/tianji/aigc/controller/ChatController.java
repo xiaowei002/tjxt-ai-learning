@@ -2,6 +2,7 @@ package com.tianji.aigc.controller;
 
 import com.tianji.aigc.service.ChatService;
 import com.tianji.aigc.vo.ChatEventVO;
+import com.tianji.aigc.vo.TemplateVO;
 import com.tianji.common.annotations.NoWrapper;
 import com.tianji.aigc.dto.ChatDTO;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,6 +19,8 @@ import reactor.core.publisher.Flux;
 public class ChatController {
 
     private final ChatService chatService;
+
+    private static final TemplateVO TEMPLATE_VO = new TemplateVO();
 
     /**
      * 流式输出
@@ -40,5 +43,11 @@ public class ChatController {
     @PostMapping("/text")
     public String chatText(@RequestBody String question) {
         return this.chatService.chatText(question);
+    }
+
+
+    @GetMapping("/templates")
+    public TemplateVO getTemplates() {
+        return TEMPLATE_VO;
     }
 }

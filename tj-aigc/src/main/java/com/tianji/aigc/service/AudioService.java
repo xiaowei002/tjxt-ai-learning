@@ -1,5 +1,6 @@
 package com.tianji.aigc.service;
 
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 public interface AudioService {
@@ -12,4 +13,12 @@ public interface AudioService {
      * @return 语音
      */
     ResponseBodyEmitter ttsStream(String text);
+
+    /**
+     * stt
+     *
+     * @param audioFile 语音
+     * @return 文本
+     */
+    String stt(MultipartFile audioFile);
 }
